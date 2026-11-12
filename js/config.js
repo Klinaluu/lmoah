@@ -73,14 +73,18 @@ export const SHOW_EMPTY_PHOTO_FRAMES = false; // bản khách: mốc chưa có �
 //   export const COUPLE_FRAMES = ["assets/characters/Couple-Bike-Side-01.png"];
 export const COUPLE_FRAMES = ["assets/characters/Couple-Bike-Side-01.png"];
 
+// Cỡ cô gái lúc đứng chờ + nhảy mừng (1 = mặc định). Khách nhận xét em bé hơn anh → phóng to.
+export const WOMAN_SCALE = 1.35;
+
 // ---------- 5 món quà của chặng solo ----------
-// icon: để trống ("") thì game tự vẽ hình thay thế.
-// Lmoah: 5 icon riêng cắt từ trang 11 design Canva "Lmoah".
+// icon: để trống ("") thì game tự vẽ hình thay thế. scale: phóng to riêng icon dáng cao/mảnh.
+// Lmoah: 5 icon riêng cắt từ trang 11 design Canva "Lmoah". Trái tim tím đã chèn khoảng trống
+// phía trên (nhỏ lại ~70%), guitar scale 1.5 — theo nhận xét của khách.
 export const GIFTS = [
   { id: "matcha", label: { en: "Purple Heart", vi: "Trái tim tím" }, icon: "assets/characters/Item-PurpleHeart-01.png" },
   { id: "chocolate", label: { en: "Cassette", vi: "Băng cassette" }, icon: "assets/characters/Item-Cassette-01.png" },
   { id: "flower", label: { en: "Otter", vi: "Rái cá" }, icon: "assets/characters/Item-Otter-01.png" },
-  { id: "lipstick", label: { en: "Guitar", vi: "Guitar" }, icon: "assets/characters/Item-Guitar-01.png" },
+  { id: "lipstick", label: { en: "Guitar", vi: "Guitar" }, icon: "assets/characters/Item-Guitar-01.png", scale: 1.5 },
   { id: "letter", label: { en: "Pizza", vi: "Pizza" }, icon: "assets/characters/Item-Pizza-01.png" },
 ];
 

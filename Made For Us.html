@@ -295,14 +295,18 @@ const SHOW_EMPTY_PHOTO_FRAMES = false; // bản khách: mốc chưa có ảnh th
 //   export const COUPLE_FRAMES = ["assets/characters/Couple-Bike-Side-01.png"];
 const COUPLE_FRAMES = ["assets/characters/Couple-Bike-Side-01.png"];
 
+// Cỡ cô gái lúc đứng chờ + nhảy mừng (1 = mặc định). Khách nhận xét em bé hơn anh → phóng to.
+const WOMAN_SCALE = 1.35;
+
 // ---------- 5 món quà của chặng solo ----------
-// icon: để trống ("") thì game tự vẽ hình thay thế.
-// Lmoah: 5 icon riêng cắt từ trang 11 design Canva "Lmoah".
+// icon: để trống ("") thì game tự vẽ hình thay thế. scale: phóng to riêng icon dáng cao/mảnh.
+// Lmoah: 5 icon riêng cắt từ trang 11 design Canva "Lmoah". Trái tim tím đã chèn khoảng trống
+// phía trên (nhỏ lại ~70%), guitar scale 1.5 — theo nhận xét của khách.
 const GIFTS = [
   { id: "matcha", label: { en: "Purple Heart", vi: "Trái tim tím" }, icon: "assets/characters/Item-PurpleHeart-01.png" },
   { id: "chocolate", label: { en: "Cassette", vi: "Băng cassette" }, icon: "assets/characters/Item-Cassette-01.png" },
   { id: "flower", label: { en: "Otter", vi: "Rái cá" }, icon: "assets/characters/Item-Otter-01.png" },
-  { id: "lipstick", label: { en: "Guitar", vi: "Guitar" }, icon: "assets/characters/Item-Guitar-01.png" },
+  { id: "lipstick", label: { en: "Guitar", vi: "Guitar" }, icon: "assets/characters/Item-Guitar-01.png", scale: 1.5 },
   { id: "letter", label: { en: "Pizza", vi: "Pizza" }, icon: "assets/characters/Item-Pizza-01.png" },
 ];
 
@@ -345,7 +349,7 @@ const MILESTONES = [
 //   "ho-guom": { layers: ["L1.png", "L2.png", "L3.png"], speeds: [0.05, 0.16, 0.4] },
 const SCENE_LAYERS = {};
 
-return { GAME_TITLE, GAME_SUBTITLE, WINDOW_NAME, TEXT, MEET_BUBBLE_MS, VIDEO_SRC, MUSIC_SRC, TITLE_PHOTO, SHOW_EMPTY_PHOTO_FRAMES, COUPLE_FRAMES, GIFTS, MILESTONES, SCENE_LAYERS };
+return { GAME_TITLE, GAME_SUBTITLE, WINDOW_NAME, TEXT, MEET_BUBBLE_MS, VIDEO_SRC, MUSIC_SRC, TITLE_PHOTO, SHOW_EMPTY_PHOTO_FRAMES, COUPLE_FRAMES, WOMAN_SCALE, GIFTS, MILESTONES, SCENE_LAYERS };
 })();
 
 const __mod_assets = (() => {
@@ -2218,7 +2222,8 @@ class JourneyGame {
     }
     for (const it of this.items) {
       if (it.collected) continue;
-      drawItem(ctx, img.pickup[it.id], it.id, it.x, this.groundY - it.gap, ITEM_SIZE, this.t, this.groundY);
+      // GIFTS[].scale (config): icon dáng cao/mảnh trông nhỏ vì mọi icon cùng chiều cao → cho phóng to riêng
+      drawItem(ctx, img.pickup[it.id], it.id, it.x, this.groundY - it.gap, ITEM_SIZE, this.t, this.groundY, it.scale || 1);
     }
     if (this.phase === "walk") {
       drawCoveredBike(ctx, img.bikeIdle, this.bikeX, this.groundY, this.t, this.gearReady());
@@ -2227,8 +2232,9 @@ class JourneyGame {
         drawItem(ctx, img.gear[ge.id], ge.id, ge.x, this.groundY - ge.gap, ITEM_SIZE, this.t, this.groundY, ge.id === "key" ? 0.6 : 0.9);
       }
     }
-    if (this.phase === "solo") drawWoman(ctx, img.woman, this.meetX, this.groundY, this.t, false);
-    if (this.phase === "meeting") drawWoman(ctx, img.womanCheer[Math.floor(this.t * 4) % 2], this.meetX, this.groundY, this.t, true);
+    const womanScale = this.content.womanScale || 1;
+    if (this.phase === "solo") drawWoman(ctx, img.woman, this.meetX, this.groundY, this.t, false, womanScale);
+    if (this.phase === "meeting") drawWoman(ctx, img.womanCheer[Math.floor(this.t * 4) % 2], this.meetX, this.groundY, this.t, true, womanScale);
 
     // Khung polaroid treo ngay dưới thanh HUD (dây đủ dài để không bị thanh đè lên, xem
     // topInset) và to hết mức chiều cao còn trống phía trên mặt đường cho phép — màn hình
@@ -2790,9 +2796,10 @@ function drawLipstick(ctx, cx, bottomY, size) {
 }
 
 // cheer = khung vẫy tay (nhìn thẳng, không lật); mặc định là đứng nghiêng, lật lại để nhìn về phía chàng trai
-function drawWoman(ctx, image, x, groundY, t, cheer) {
-  // cỡ theo nhân vật nam trên xe (74): đứng ≈ 68, reo hò giơ tay ≈ 84
-  const h = cheer ? 84 : 68;
+function drawWoman(ctx, image, x, groundY, t, cheer, scale = 1) {
+  // cỡ theo nhân vật nam trên xe (74): đứng ≈ 68, reo hò giơ tay ≈ 84.
+  // scale = WOMAN_SCALE (config): sprite khách vẽ kiểu chibi đầu to thì cô gái trông nhỏ hơn anh → phóng to
+  const h = (cheer ? 84 : 68) * scale;
   const bob = cheer ? Math.abs(Math.sin(t * 6)) * -6 : Math.sin(t * 2.2) * 1.5;
   drawShadow(ctx, x, groundY, 44, 0.22);
   if (!ready(image)) {
@@ -3054,7 +3061,7 @@ const __mod_main = (() => {
 // ============================================================
 // Điều phối màn hình, HUD, âm thanh, điều khiển và các đoạn cắt cảnh.
 // ============================================================
-const {GAME_TITLE, GAME_SUBTITLE, WINDOW_NAME, TEXT, GIFTS, MILESTONES, VIDEO_SRC, MUSIC_SRC, TITLE_PHOTO, SHOW_EMPTY_PHOTO_FRAMES, SCENE_LAYERS, COUPLE_FRAMES, MEET_BUBBLE_MS,} = __mod_config;
+const {GAME_TITLE, GAME_SUBTITLE, WINDOW_NAME, TEXT, GIFTS, MILESTONES, VIDEO_SRC, MUSIC_SRC, TITLE_PHOTO, SHOW_EMPTY_PHOTO_FRAMES, SCENE_LAYERS, COUPLE_FRAMES, MEET_BUBBLE_MS, WOMAN_SCALE,} = __mod_config;
 const {IMG, PROPS, PROP_SETS, SCENES, SCENE_SPEEDS, SCENE_SINK, SCENE_TOP, GRASS_SCENES} = __mod_assets;
 const {SOLO_SEGMENTS, SOLO_SEG_W, MAX_HEARTS, WALK_TERRAIN, BOSS_TERRAIN, MEET_TERRAIN, COUPLE_TERRAIN,} = __mod_levels;
 const {initAudio, sfx, setMuted, isMuted, initMusic, playMusic, duckMusicForVideo, setRainIntensity, onPageAway} = __mod_audio;
@@ -3332,7 +3339,7 @@ function startJourney() {
   if (currentGame) currentGame.destroy();
   currentGame = new JourneyGame(
     canvas,
-    { soloSegments: SOLO_SEGMENTS, soloSegW: SOLO_SEG_W, walkTerrain: WALK_TERRAIN, bossTerrain: BOSS_TERRAIN, meetTerrain: MEET_TERRAIN, items: giftItems(), milestones: coupleMilestones(), maxHearts: MAX_HEARTS, grassScenes: GRASS_SCENES, propSets: PROP_SETS, bottomInset: bottomInsetFor(size.height), topInset: topInsetFor(size.height), emptyPolaroids: SHOW_EMPTY_PHOTO_FRAMES, photoPlaceholder: text("photoPlaceholder"), strings: engineStrings(), titleFont: titleFont() },
+    { soloSegments: SOLO_SEGMENTS, soloSegW: SOLO_SEG_W, walkTerrain: WALK_TERRAIN, bossTerrain: BOSS_TERRAIN, meetTerrain: MEET_TERRAIN, items: giftItems(), milestones: coupleMilestones(), maxHearts: MAX_HEARTS, womanScale: WOMAN_SCALE || 1, grassScenes: GRASS_SCENES, propSets: PROP_SETS, bottomInset: bottomInsetFor(size.height), topInset: topInsetFor(size.height), emptyPolaroids: SHOW_EMPTY_PHOTO_FRAMES, photoPlaceholder: text("photoPlaceholder"), strings: engineStrings(), titleFont: titleFont() },
     images,
     {
       onItem: (item, count, total) => {
@@ -3405,8 +3412,8 @@ function playMeeting() {
   const womanLine = pick(TEXT.womanLine);
   const steps = [
     manLine && { el: $("bubble-man"), line: manLine, x: g.player.x + g.player.w * 0.5, y: g.player.y - 12, ms: ms.man },
-    // cô gái reo hò cao ~84 đơn vị, đứng giữa tại meetX
-    womanLine && { el: $("bubble-woman"), line: womanLine, x: g.meetX, y: g.groundY - 96, ms: ms.woman },
+    // cô gái reo hò cao ~84 đơn vị (× WOMAN_SCALE), đứng giữa tại meetX
+    womanLine && { el: $("bubble-woman"), line: womanLine, x: g.meetX, y: g.groundY - 84 * (WOMAN_SCALE || 1) - 12, ms: ms.woman },
   ].filter(Boolean);
   const toStars = () => {
     setTitleText($("meet-text"), text("meetText"));
