@@ -405,7 +405,9 @@ function openVideo(fromEnding) {
   if (VIDEO_SRC) {
     missing.classList.add("hidden");
     video.classList.remove("hidden");
-    video.src = VIDEO_SRC;
+    // "#t=0.001": Safari trên iPhone (preload="metadata", không có poster) để ô đen tới khi bấm
+    // phát; có mốc thời gian thì nó vẽ sẵn khung hình đầu. Khách tự ghi "#..." thì giữ nguyên.
+    video.src = VIDEO_SRC.includes("#") ? VIDEO_SRC : VIDEO_SRC + "#t=0.001";
     video.load();
   } else {
     // bản demo: chưa có video của bạn

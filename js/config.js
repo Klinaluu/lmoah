@@ -58,7 +58,7 @@ export const MEET_BUBBLE_MS = { man: 2500, woman: 3500 }; // câu của cô gái
 
 // Ảnh polaroid: đặt file vào assets/photos/ rồi điền đường dẫn vào từng mốc bên dưới.
 // Video: đặt file .mp4 vào assets/video/ rồi điền tên vào đây (nên dưới 15MB).
-export const VIDEO_SRC = "assets/video/video.mp4#t=0.001"; // .mov 18s 1920x1080 → avconvert .mp4. "#t=0.001": iPhone Safari hiện khung đầu thay vì ô đen (thử trên Simulator 2026-11-12)
+export const VIDEO_SRC = "assets/video/video.mp4"; // .mov 18s 1920x1080 → avconvert .mp4 (khung đầu trên iPhone: code chung tự thêm #t=0.001)
 // Nhạc nền: đặt file .mp3 vào assets/audio/ rồi điền tên vào đây. Để "" thì không có nhạc nền
 // (vẫn còn đủ hiệu ứng nhảy/bấm nút). Tự tắt khi phát video, tự nhỏ lại một chút mỗi lần nhảy.
 export const MUSIC_SRC = "assets/audio/bgm.mp3";
